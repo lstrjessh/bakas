@@ -1,0 +1,9 @@
+/node_modules/
+/.next/
+/.env*
+!/.env.example
+*.tsbuildinfo
+/public/maplibre-gl-*.mjs
+/__pycache__/
+**/__pycache__/
+/.vscode/

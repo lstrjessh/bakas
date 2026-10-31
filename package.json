@@ -1,0 +1,32 @@
+{
+  "name": "bakas",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev --port 3002",
+    "build": "next build",
+    "start": "next start --port 3002",
+    "test": "tsx --test tests/*.test.ts",
+    "ingest": "python scripts/ingest.py",
+    "sync-worker": "node scripts/sync-worker.mjs",
+    "postinstall": "node scripts/sync-worker.mjs"
+  },
+  "dependencies": {
+    "next": "16.4.3",
+    "react": "19.3.0",
+    "react-dom": "19.3.0",
+    "maplibre-gl": "^6.16.0",
+    "sharp": "^0.35.5"
+  },
+  "devDependencies": {
+    "typescript": "^5.9.3",
+    "@types/node": "^22",
+    "@types/react": "^19",
+    "@types/react-dom": "^19",
+    "@types/geojson": "^7946.0.16",
+    "tsx": "^4.20.0"
+  },
+  "engines": {
+    "node": ">=22.12"
+  }
+}

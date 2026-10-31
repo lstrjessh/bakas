@@ -1,0 +1,10 @@
+# Data provenance
+
+- Historical archive: NOAA IBTrACS v04r01, Western Pacific, 1951 onward. `public/data/index.json` records ingestion time and the upstream URL. Each storm file retains the original serial ID and WMO reporting agency. Missing values remain null. Knots are converted to km/h only in the UI. The importer excludes alternate spur tracks and does not blend reporting agencies. Early records and provisional tracks have different completeness. Revisions upstream require re-ingestion.
+- Current storms: DOST-PAGASA Panahon, with the session handshake and radius-based observed/forecast distinction adapted from GAKIT's existing adapter. Wind speeds arrive in km/h and are normalized to knots internally. Responses are cached for five minutes in-process and briefly at the CDN. The feed is a website integration rather than a contracted API; failures return 503, never an empty-success response. No fabricated fallback data.
+- Satellite: Himawari infrared band 13 via JMA / RAMMB / CIRA SLIDER. GAKIT's tile fetching, fixed-grid projection, and cloud-alpha renderer are reused. Recent published scans are reprojected into the Philippines crop (105–150°E, 0.25°S–29.25°N). Satellite times are independent of historical track replay. Not every storm in the archive has matching satellite imagery.
+- Basemap: OpenFreeMap, OpenMapTiles, OpenStreetMap contributors. Attribution is displayed on the map.
+
+Citation: Gahtan, J., K. R. Knapp, C. J. Schreck, H. J. Diamond, and J. P. Kossin, 2024: International Best Track Archive for Climate Stewardship (IBTrACS) Project, Version 4r01, Western Pacific subset. NOAA National Centers for Environmental Information. https://doi.org/10.25921/82ty-9e16. Access date is stored in the archive index.
+
+Satellite projection math in the reused GAKIT renderer is based on CIRA's published SLIDER client and NOAA geostationary projection documentation. Preserve provider credits when reusing this code. GAKIT-derived files and their source paths are listed in `THIRD_PARTY_NOTICES.md`.

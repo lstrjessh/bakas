@@ -1,0 +1,28 @@
+name: Snapshot current advisories
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '7,37 * * * *'
+permissions:
+  contents: read
+jobs:
+  snapshot:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    env:
+      BAKAS_URL: ${{ secrets.BAKAS_URL }}
+      AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+      AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+      AWS_DEFAULT_REGION: ${{ secrets.AWS_REGION }}
+      S3_BUCKET: ${{ secrets.S3_BUCKET }}
+      S3_ENDPOINT_URL: ${{ secrets.S3_ENDPOINT_URL }}
+    steps:
+      - name: Store successful advisory response
+        if: ${{ env.BAKAS_URL != '' && env.S3_BUCKET != '' && env.AWS_ACCESS_KEY_ID != '' && env.AWS_SECRET_ACCESS_KEY != '' && env.AWS_DEFAULT_REGION != '' }}
+        shell: bash
+        run: |
+          curl --fail --retry 2 --max-time 60 "${BAKAS_URL%/}/api/storms" --output advisory.json
+          jq -e '(.storms | type == "array") and (.fetched | type == "string")' advisory.json > /dev/null
+          endpoint=()
+          if [ -n "$S3_ENDPOINT_URL" ]; then endpoint=(--endpoint-url "$S3_ENDPOINT_URL"); fi
+          aws "${endpoint[@]}" s3 cp advisory.json "s3://$S3_BUCKET/advisories/$(date -u +%Y/%m/%d/%Y%m%dT%H%M%SZ).json" --content-type application/json --only-show-errors
