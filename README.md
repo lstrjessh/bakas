@@ -2,6 +2,8 @@
 
 Typhoon tracks, past and present. A Western Pacific storm explorer with current PAGASA tracks, historical playback, near-real-time Himawari imagery, and downloadable tracks and satellite videos.
 
+Its typhoon tracking tools are also used in GAKIT.
+
 Built with Next.js, TypeScript, and MapLibre. Historical tracks are static files generated from NOAA IBTrACS. No database or analytics.
 
 ![Bakas storm explorer](docs/images/bakas.png)
