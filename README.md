@@ -1,6 +1,6 @@
 # Bakas
 
-Typhoon tracks, past and present. A Western Pacific storm explorer with current PAGASA tracks, historical playback, and near-real-time Himawari imagery.
+Typhoon tracks, past and present. A Western Pacific storm explorer with current PAGASA tracks, historical playback, near-real-time Himawari imagery, and downloadable tracks and satellite videos.
 
 Built with Next.js, TypeScript, and MapLibre. Historical tracks are static files generated from NOAA IBTrACS. No database or analytics.
 

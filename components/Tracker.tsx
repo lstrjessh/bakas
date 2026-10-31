@@ -10,6 +10,11 @@ import {
 } from "@/lib/types";
 import { timeLabel, windLabel } from "@/lib/tracks";
 import { preloadSatelliteFrames } from "@/lib/satellite-frames";
+import { downloadBlob, downloadTrack } from "@/lib/downloads";
+import type {
+  VideoExportRequest,
+  VideoExportResult,
+} from "@/lib/satellite-video";
 const StormMap = dynamic(() => import("./StormMap"), {
   ssr: false,
   loading: () => (
@@ -64,6 +69,45 @@ export default function Tracker() {
     [loadedUrl, setLoadedUrl] = useState(false);
   const [satPlaying, setSatPlaying] = useState(false),
     [frameReady, setFrameReady] = useState("");
+  const [videoRequest, setVideoRequest] = useState<VideoExportRequest | null>(
+    null,
+  );
+  const [videoProgress, setVideoProgress] = useState("");
+  const [videoError, setVideoError] = useState("");
+  const [videoSupported, setVideoSupported] = useState(false);
+  const videoController = useRef<AbortController | null>(null);
+  useEffect(() => {
+    setVideoSupported(
+      typeof MediaRecorder !== "undefined" &&
+        typeof HTMLCanvasElement.prototype.captureStream === "function",
+    );
+    return () => videoController.current?.abort();
+  }, []);
+  const finishVideo = useCallback(
+    (result: VideoExportResult | null, error?: string) => {
+      if (result) downloadBlob(result.blob, result.filename);
+      setVideoRequest(null);
+      setVideoProgress("");
+      setVideoError(error || "");
+    },
+    [],
+  );
+  const startVideo = () => {
+    videoController.current?.abort();
+    const controller = new AbortController();
+    videoController.current = controller;
+    setPlaying(false);
+    setSatPlaying(false);
+    setVideoError("");
+    setVideoProgress("Preparing video…");
+    setVideoRequest({
+      id: Date.now(),
+      frames: [...frames],
+      storm,
+      opacity,
+      signal: controller.signal,
+    });
+  };
   useEffect(() => {
     if (!satellite || !frame || frameReady !== frame || frames.length < 2)
       return;
@@ -287,7 +331,7 @@ export default function Tracker() {
           Data & sources <span>↗</span>
         </button>
       </header>
-      <div className="workspace">
+      <div className="workspace" inert={!!videoRequest}>
         <aside className="sidebar" aria-label="Storm browser">
           <div className="sidebar-heading">
             <span className="eyebrow">WESTERN PACIFIC</span>
@@ -451,6 +495,9 @@ export default function Tracker() {
             opacity={opacity}
             par={par}
             onFrameReady={setFrameReady}
+            videoRequest={videoRequest}
+            onVideoProgress={setVideoProgress}
+            onVideoComplete={finishVideo}
           />
           <div className="map-heading">
             <span className="eyebrow">
@@ -543,6 +590,21 @@ export default function Tracker() {
                         }}
                       />
                     </label>
+                    <button
+                      className="satellite-save"
+                      onClick={startVideo}
+                      disabled={
+                        frames.length < 2 || !frameReady || !videoSupported
+                      }
+                      aria-label="Download satellite playback video"
+                      title={
+                        videoSupported
+                          ? "Download the visible map and satellite playback"
+                          : "Video export is unavailable in this browser"
+                      }
+                    >
+                      Save ↓
+                    </button>
                   </div>
                   <small>
                     Near-real-time · {frames.length} recent frames. Independent
@@ -696,6 +758,33 @@ export default function Tracker() {
                     : "Wind averaging not reported"}{" "}
                   ↗
                 </a>
+                <details className="track-download">
+                  <summary aria-label={`Download ${storm.name} track`}>
+                    Track ↓
+                  </summary>
+                  <div>
+                    <button
+                      onClick={(event) => {
+                        downloadTrack(storm, "geojson");
+                        event.currentTarget
+                          .closest("details")
+                          ?.removeAttribute("open");
+                      }}
+                    >
+                      GeoJSON
+                    </button>
+                    <button
+                      onClick={(event) => {
+                        downloadTrack(storm, "csv");
+                        event.currentTarget
+                          .closest("details")
+                          ?.removeAttribute("open");
+                      }}
+                    >
+                      CSV
+                    </button>
+                  </div>
+                </details>
                 <span>Times in PHT</span>
               </div>
             </div>
@@ -713,6 +802,28 @@ export default function Tracker() {
           </div>
         </section>
       </div>
+      {videoRequest && (
+        <div className="video-export-status" role="status">
+          <div>
+            <span>{videoProgress}</span>
+            <small>Keep this tab visible until the download starts.</small>
+          </div>
+          <button onClick={() => videoController.current?.abort()}>
+            Cancel
+          </button>
+        </div>
+      )}
+      {videoError && (
+        <div className="video-export-status" role="alert">
+          <span>{videoError}</span>
+          <button
+            aria-label="Dismiss export error"
+            onClick={() => setVideoError("")}
+          >
+            ×
+          </button>
+        </div>
+      )}
       <footer className="footer">
         <span>
           Built by{" "}

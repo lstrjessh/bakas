@@ -1100,6 +1100,97 @@ input[type="checkbox"] {
     font-size: 12px;
   }
 }
+.track-download {
+  position: relative;
+  flex-shrink: 0;
+  margin-left: auto;
+}
+.track-download summary {
+  cursor: pointer;
+  list-style: none;
+  color: var(--green);
+  white-space: nowrap;
+}
+.track-download summary::-webkit-details-marker {
+  display: none;
+}
+.track-download summary:focus-visible {
+  outline: 2px solid var(--green);
+  outline-offset: 4px;
+}
+.track-download > div {
+  position: absolute;
+  bottom: calc(100% + 12px);
+  right: 0;
+  z-index: 3;
+  min-width: 105px;
+  padding: 4px;
+  background: #1c3037;
+  border: 1px solid #486256;
+  border-radius: 4px;
+  box-shadow: 0 4px 16px #06110a55;
+}
+.track-download button {
+  display: block;
+  width: 100%;
+  text-align: left;
+  font-size: 11px;
+  padding: 9px 11px;
+  color: var(--green);
+  border-radius: 2px;
+}
+.track-download button:hover {
+  background: #bbdfb414;
+}
+.satellite-playback > .satellite-save {
+  width: auto;
+  height: 27px;
+  padding: 0 7px;
+  white-space: nowrap;
+  font-size: 9px;
+}
+.video-export-status {
+  position: fixed;
+  left: 50%;
+  bottom: 52px;
+  transform: translateX(-50%);
+  z-index: 12;
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  width: max-content;
+  max-width: calc(100% - 30px);
+  padding: 14px 18px;
+  background: #15232a;
+  border: 1px solid #6b9279;
+  border-radius: 5px;
+  box-shadow: 0 5px 24px #07111055;
+  font-size: 12px;
+  line-height: 1.6;
+}
+.video-export-status button {
+  color: var(--green);
+  padding: 4px;
+  white-space: nowrap;
+}
+.video-export-status small {
+  display: block;
+  color: var(--muted);
+  font-size: 10px;
+  margin-top: 3px;
+}
+@media (max-width: 700px) {
+  .satellite-playback > .satellite-save {
+    font-size: 8px;
+    padding: 0 5px;
+    height: 23px;
+  }
+  .video-export-status {
+    bottom: 20px;
+    font-size: 11px;
+    gap: 12px;
+  }
+}
 .track-endpoint {
   display: flex;
   align-items: center;

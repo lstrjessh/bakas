@@ -12,6 +12,10 @@ CDN caching shares rendered satellite frames among visitors. Process caches dedu
 
 Automation templates are in `docs/automation/`. Copy them into `.github/workflows/` using a GitHub credential with the `workflow` scope to activate them. The archive template refreshes three times weekly and commits updated static data; GitHub Actions write permission must be enabled. The templates are not active in this repository by default.
 
+## Downloads
+
+The track panel exports complete tracks as CSV or GeoJSON, preserving UTC timestamps, original measured positions, reporting agencies, wind averaging periods, knots, hPa, missing values, and observed/forecast distinctions. GeoJSON track lines are split at the antimeridian. The satellite panel's Save control records the current map view and available satellite frames as MP4 or WebM, depending on browser codec support. The video includes timestamps, selected-track year/source, and imagery/basemap credits. Recording runs locally in an offscreen map without uploading a video or changing the visible map. Keep the tab visible during export; Cancel stops recording and releases temporary map/canvas resources. Video exports are capped at 1920 × 1080 and preserve the current view's aspect ratio. Track playback and satellite imagery remain independent.
+
 ## Optional durable advisory snapshots
 
 The live API works without storage. To retain forecast revisions, activate the `snapshot-advisories` template, configure an S3-compatible bucket, and set its secrets: `BAKAS_URL`, `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY`, `AWS_REGION`, `S3_BUCKET`, and optionally `S3_ENDPOINT_URL`. The workflow stores timestamped current-advisory JSON every 30 minutes. It skips storage when the required configuration is absent; no storage account is created automatically. Keep the bucket private unless you deliberately expose the files. This first UI does not browse saved forecast revisions.

@@ -5,6 +5,11 @@ import type { FeatureCollection } from "geojson";
 import { PAR, SATELLITE_BOUNDS, type Storm } from "@/lib/types";
 import { timeLabel, unwrapTrack } from "@/lib/tracks";
 import { loadSatelliteFrame } from "@/lib/satellite-frames";
+import {
+  exportSatelliteVideo,
+  type VideoExportRequest,
+  type VideoExportResult,
+} from "@/lib/satellite-video";
 import "maplibre-gl/dist/maplibre-gl.css";
 
 const empty: FeatureCollection = { type: "FeatureCollection", features: [] };
@@ -17,6 +22,9 @@ type Props = {
   opacity: number;
   par: boolean;
   onFrameReady: (frame: string) => void;
+  videoRequest: VideoExportRequest | null;
+  onVideoProgress: (message: string) => void;
+  onVideoComplete: (result: VideoExportResult | null, error?: string) => void;
 };
 
 export default function StormMap({
@@ -28,6 +36,9 @@ export default function StormMap({
   opacity,
   par,
   onFrameReady,
+  videoRequest,
+  onVideoProgress,
+  onVideoComplete,
 }: Props) {
   const host = useRef<HTMLDivElement>(null),
     map = useRef<maplibregl.Map | null>(null);
@@ -39,6 +50,23 @@ export default function StormMap({
   useEffect(() => {
     click.current = onPosition;
   }, [onPosition]);
+  useEffect(() => {
+    if (!videoRequest || !ready || !map.current) return;
+    const controller = new AbortController();
+    const request = {
+      ...videoRequest,
+      signal: AbortSignal.any([videoRequest.signal, controller.signal]),
+    };
+    void exportSatelliteVideo(map.current, request, onVideoProgress)
+      .then((result) => onVideoComplete(result))
+      .catch((error) =>
+        onVideoComplete(
+          null,
+          error.name === "AbortError" ? undefined : error.message,
+        ),
+      );
+    return () => controller.abort();
+  }, [videoRequest, ready, onVideoProgress, onVideoComplete]);
   useEffect(() => {
     if (!host.current) return;
     maplibregl.setWorkerUrl("/maplibre-gl-worker.mjs");
