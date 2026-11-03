@@ -9,7 +9,7 @@ import {
   type StormSummary,
 } from "@/lib/types";
 import { timeLabel, windLabel } from "@/lib/tracks";
-import { preloadSatelliteFrames } from "@/lib/satellite-frames";
+import { loadSatelliteFrame, preloadSatelliteFrames } from "@/lib/satellite-frames";
 import { downloadBlob, downloadTrack } from "@/lib/downloads";
 import type {
   VideoExportRequest,
@@ -46,6 +46,7 @@ function CycloneIcon() {
 }
 
 export default function Tracker() {
+  const [satelliteStatus, setSatelliteStatus] = useState("");
   const [mode, setMode] = useState<"live" | "archive">("live"),
     [archive, setArchive] = useState<ArchiveIndex | null>(null),
     [archiveError, setArchiveError] = useState("");
@@ -69,6 +70,8 @@ export default function Tracker() {
     [loadedUrl, setLoadedUrl] = useState(false);
   const [satPlaying, setSatPlaying] = useState(false),
     [frameReady, setFrameReady] = useState("");
+  const [satelliteScrub, setSatelliteScrub] = useState<number | null>(null);
+  const satelliteDragging = useRef(false);
   const [videoRequest, setVideoRequest] = useState<VideoExportRequest | null>(
     null,
   );
@@ -109,6 +112,10 @@ export default function Tracker() {
     });
   };
   useEffect(() => {
+    // Download immediately; the map shares this request once its style is ready.
+    if (satellite && frame) void loadSatelliteFrame(frame).catch(() => {});
+  }, [satellite, frame]);
+  useEffect(() => {
     if (!satellite || !frame || frameReady !== frame || frames.length < 2)
       return;
     const controller = new AbortController();
@@ -128,7 +135,7 @@ export default function Tracker() {
       return;
     const timer = setTimeout(
       () => setFrame(frames[(frames.indexOf(frame) + 1) % frames.length]),
-      1800,
+      500,
     );
     return () => clearTimeout(timer);
   }, [satellite, satPlaying, frameReady, frame, frames]);
@@ -167,7 +174,9 @@ export default function Tracker() {
     }
     const value = Number(params.get("step"));
     if (Number.isInteger(value) && value >= 0) setPosition(value);
-    setSatellite(params.get("satellite") === "1");
+    const satelliteEnabled = params.get("satellite") !== "0";
+    setSatellite(satelliteEnabled);
+    setSatPlaying(satelliteEnabled);
     setLoadedUrl(true);
   }, []);
   useEffect(() => {
@@ -258,7 +267,7 @@ export default function Tracker() {
       url.searchParams.set("storm", selection);
       if (position) url.searchParams.set("step", String(position));
     }
-    if (satellite) url.searchParams.set("satellite", "1");
+    url.searchParams.set("satellite", satellite ? "1" : "0");
     history.replaceState(null, "", url);
   }, [selection, position, satellite, loadedUrl]);
   useEffect(() => {
@@ -314,9 +323,6 @@ export default function Tracker() {
   const maximumWind = Math.max(...windSamples.map((p) => p.wind || 0), 1);
   const displayed =
     mode === "live" ? live?.storms || [] : filtered.slice(0, 100);
-  const highlight = archive?.storms.find(
-    (s) => s.name.toLowerCase() === "haiyan" && s.year === 2013,
-  );
   return (
     <main className="app">
       <header className="header">
@@ -485,7 +491,7 @@ export default function Tracker() {
                 : "Public weather data"}
           </div>
         </aside>
-        <section className="map-panel" aria-label="Storm explorer">
+        <section className="map-panel" data-satellite={satellite} aria-label="Storm explorer">
           <StormMap
             storm={storm}
             position={position}
@@ -495,6 +501,7 @@ export default function Tracker() {
             opacity={opacity}
             par={par}
             onFrameReady={setFrameReady}
+            onImageStatus={setSatelliteStatus}
             videoRequest={videoRequest}
             onVideoProgress={setVideoProgress}
             onVideoComplete={finishVideo}
@@ -512,6 +519,7 @@ export default function Tracker() {
                 : "Philippines & surrounding waters"}
             </p>
           </div>
+          <div className="map-controls">
           <div className="layers">
             <label>
               <input
@@ -522,7 +530,7 @@ export default function Tracker() {
                   setSatPlaying(false);
                 }}
               />
-              Satellite<span>IR</span>
+              Live satellite<span>IR</span>
             </label>
             <label>
               <input
@@ -536,7 +544,7 @@ export default function Tracker() {
               <label className="opacity">
                 <span>Opacity</span>
                 <input
-                  aria-label="Satellite opacity"
+                  aria-label="Live satellite opacity"
                   type="range"
                   min="0"
                   max="1"
@@ -548,6 +556,11 @@ export default function Tracker() {
             )}
           </div>
           {satellite && (
+            <div className="satellite-dock">
+              <div className="map-legend mobile-map-legend">
+                <span><i />Observed</span>
+                <span><i className="forecast-key" />Forecast</span>
+              </div>
             <div className="satellite-control">
               <span className="eyebrow">HIMAWARI · INFRARED</span>
               {satError ? (
@@ -571,7 +584,9 @@ export default function Tracker() {
                           ? "Pause satellite playback"
                           : "Play satellite playback"
                       }
-                      disabled={frames.length < 2}
+                      aria-pressed={satPlaying}
+                      title={satPlaying ? "Pause satellite playback" : "Play satellite playback"}
+                      disabled={!satPlaying && frames.length < 2}
                       onClick={() => setSatPlaying((p) => !p)}
                     >
                       {satPlaying ? "Ⅱ" : "▶"}
@@ -582,11 +597,33 @@ export default function Tracker() {
                         type="range"
                         min="0"
                         max={Math.max(0, frames.length - 1)}
-                        value={Math.max(0, frames.indexOf(frame))}
+                        value={satelliteScrub ?? Math.max(0, frames.indexOf(frame))}
                         disabled={!frames.length}
+                        onPointerDown={(e) => {
+                          e.currentTarget.setPointerCapture(e.pointerId);
+                          satelliteDragging.current = true;
+                          setSatPlaying(false);
+                        }}
                         onChange={(e) => {
                           setSatPlaying(false);
-                          setFrame(frames[Number(e.target.value)]);
+                          const index = Number(e.target.value);
+                          if (satelliteDragging.current) setSatelliteScrub(index);
+                          else setFrame(frames[index]);
+                        }}
+                        onPointerUp={(e) => {
+                          satelliteDragging.current = false;
+                          setFrame(frames[Number(e.currentTarget.value)]);
+                          setSatelliteScrub(null);
+                        }}
+                        onPointerCancel={() => {
+                          satelliteDragging.current = false;
+                          setSatelliteScrub(null);
+                        }}
+                        onBlur={(e) => {
+                          if (satelliteDragging.current)
+                            setFrame(frames[Number(e.currentTarget.value)]);
+                          satelliteDragging.current = false;
+                          setSatelliteScrub(null);
                         }}
                       />
                     </label>
@@ -606,6 +643,7 @@ export default function Tracker() {
                       Save ↓
                     </button>
                   </div>
+                  <p className="satellite-frame-status" role="status">{satelliteStatus}</p>
                   <small>
                     Near-real-time · {frames.length} recent frames. Independent
                     of storm replay.
@@ -613,7 +651,9 @@ export default function Tracker() {
                 </>
               )}
             </div>
+            </div>
           )}
+          </div>
           {selectionError && (
             <div className="selection-error" role="alert">
               {selectionError}
@@ -622,21 +662,6 @@ export default function Tracker() {
           {selection && !storm && !selectionError && (
             <div className="selection-error" role="status">
               Loading storm track…
-            </div>
-          )}
-          {!selection && highlight && (
-            <div className="map-intro">
-              <span className="eyebrow">FROM THE ARCHIVE</span>
-              <h3>A path worth revisiting.</h3>
-              <p>Replay Haiyan’s 2013 track across the Pacific.</p>
-              <button
-                onClick={() => {
-                  setMode("archive");
-                  choose(highlight);
-                }}
-              >
-                Explore Haiyan <span>→</span>
-              </button>
             </div>
           )}
           {storm && point && (

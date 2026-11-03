@@ -22,6 +22,7 @@ type Props = {
   opacity: number;
   par: boolean;
   onFrameReady: (frame: string) => void;
+  onImageStatus?: (message: string) => void;
   videoRequest: VideoExportRequest | null;
   onVideoProgress: (message: string) => void;
   onVideoComplete: (result: VideoExportResult | null, error?: string) => void;
@@ -36,6 +37,7 @@ export default function StormMap({
   opacity,
   par,
   onFrameReady,
+  onImageStatus,
   videoRequest,
   onVideoProgress,
   onVideoComplete,
@@ -46,6 +48,9 @@ export default function StormMap({
     [error, setError] = useState("");
   const [imageLoading, setImageLoading] = useState(false),
     [imageError, setImageError] = useState("");
+  useEffect(() => {
+    onImageStatus?.(satellite ? imageError || (imageLoading ? "Loading satellite frame…" : "") : "");
+  }, [satellite, imageLoading, imageError, onImageStatus]);
   const click = useRef(onPosition);
   useEffect(() => {
     click.current = onPosition;
@@ -78,10 +83,6 @@ export default function StormMap({
       attributionControl: false,
     });
     map.current = instance;
-    instance.addControl(
-      new maplibregl.NavigationControl({ showCompass: false }),
-      "top-right",
-    );
     instance.addControl(
       new maplibregl.AttributionControl({ compact: true }),
       "bottom-right",
@@ -304,14 +305,14 @@ export default function StormMap({
         const source = instance.getSource("satellite") as
           maplibregl.ImageSource | undefined;
         if (source) {
-          source.updateImage({ url: objectUrl, coordinates: SATELLITE_BOUNDS });
+          source.updateImage({ image, coordinates: SATELLITE_BOUNDS });
           instance.setLayoutProperty("satellite", "visibility", "visible");
         } else {
           instance.addSource("satellite", {
             type: "image",
-            url: objectUrl,
             coordinates: SATELLITE_BOUNDS,
           });
+          (instance.getSource("satellite") as maplibregl.ImageSource).updateImage({ image });
           instance.addLayer(
             {
               id: "satellite",
@@ -352,7 +353,7 @@ export default function StormMap({
             : "Loading the Western Pacific…"}
         </div>
       )}
-      {satellite && (imageLoading || imageError) && (
+      {!onImageStatus && satellite && (imageLoading || imageError) && (
         <div className="image-status" role="status">
           {imageError || "Loading satellite frame…"}
         </div>

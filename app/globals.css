@@ -7,7 +7,8 @@
   --line: #2c3c41;
   --green: #bbdfb4;
   --orange: #e9ad69;
-  font-family: Arial, Helvetica, sans-serif;
+  --font-mono: ui-monospace, "Cascadia Code", "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
+  font-family: var(--font-mono);
   color-scheme: dark;
 }
 * {
@@ -99,7 +100,7 @@ input[type="checkbox"] {
   gap: 8px;
   font-size: 34px;
   font-weight: 600;
-  letter-spacing: -1.8px;
+  letter-spacing: 0;
 }
 .brand > svg {
   width: 35px;
@@ -128,8 +129,7 @@ input[type="checkbox"] {
 }
 .eyebrow {
   font:
-    9px/1.5 "Courier New",
-    monospace;
+    9px/1.5 var(--font-mono);
   letter-spacing: 1.5px;
   color: var(--green);
 }
@@ -152,7 +152,7 @@ input[type="checkbox"] {
 .sidebar-heading h1 {
   font-size: 28px;
   font-weight: 500;
-  letter-spacing: -1px;
+  letter-spacing: 0;
   margin: 12px 0 10px;
 }
 .sidebar-heading p {
@@ -249,8 +249,7 @@ input[type="checkbox"] {
   justify-content: space-between;
   padding: 24px 26px 12px;
   font:
-    8px "Courier New",
-    monospace;
+    8px var(--font-mono);
   letter-spacing: 1.2px;
   color: #9aabab;
 }
@@ -312,8 +311,7 @@ input[type="checkbox"] {
 .row-end {
   margin-left: auto;
   font:
-    8px "Courier New",
-    monospace;
+    8px var(--font-mono);
   color: #849c96;
   letter-spacing: 0.5px;
   white-space: nowrap;
@@ -334,8 +332,7 @@ input[type="checkbox"] {
   padding: 18px 24px;
   border-top: 1px solid var(--line);
   font:
-    9px "Courier New",
-    monospace;
+    9px var(--font-mono);
   color: var(--muted);
   display: flex;
   gap: 9px;
@@ -359,7 +356,7 @@ input[type="checkbox"] {
   line-height: 1.4;
   color: var(--ink);
   font-weight: 500;
-  letter-spacing: -0.4px;
+  letter-spacing: 0;
 }
 .empty-state p {
   margin: 12px 0 20px;
@@ -374,8 +371,7 @@ input[type="checkbox"] {
 }
 .status-label {
   font:
-    8px "Courier New",
-    monospace;
+    8px var(--font-mono);
   color: var(--orange);
   letter-spacing: 1px;
 }
@@ -388,6 +384,9 @@ input[type="checkbox"] {
 .map-host {
   position: absolute;
   inset: 0;
+}
+.map-host.maplibregl-map {
+  font-family: var(--font-mono);
 }
 .map-heading {
   position: absolute;
@@ -407,7 +406,7 @@ input[type="checkbox"] {
 }
 .map-heading h2 {
   font-weight: 500;
-  letter-spacing: -0.7px;
+  letter-spacing: 0;
   font-size: 25px;
   line-height: 1.2;
   margin: 7px 0;
@@ -420,7 +419,7 @@ input[type="checkbox"] {
 .layers {
   position: absolute;
   right: 20px;
-  top: 104px;
+  top: 26px;
   background: #15232af2;
   border: 1px solid #3b4f50;
   border-radius: 5px;
@@ -442,8 +441,7 @@ input[type="checkbox"] {
 .layers label > span:last-child:not(:first-child) {
   margin-left: auto;
   font:
-    8px "Courier New",
-    monospace;
+    8px var(--font-mono);
   color: var(--green);
 }
 .layers .opacity {
@@ -458,7 +456,7 @@ input[type="checkbox"] {
 }
 .satellite-control {
   position: absolute;
-  top: 250px;
+  top: 130px;
   right: 20px;
   width: 260px;
   background: #15232af2;
@@ -493,42 +491,6 @@ input[type="checkbox"] {
   color: var(--green);
   padding: 0;
   text-decoration: underline;
-}
-.map-intro {
-  position: absolute;
-  left: 28px;
-  bottom: 55px;
-  background: #15232af5;
-  border: 1px solid #3b4f50;
-  border-radius: 5px;
-  padding: 24px;
-  width: 300px;
-  box-shadow: 0 8px 35px #101b2120;
-}
-.map-intro h3 {
-  font-size: 24px;
-  font-weight: 400;
-  letter-spacing: -0.8px;
-  line-height: 1.2;
-  margin: 12px 0;
-}
-.map-intro p {
-  font-size: 12px;
-  line-height: 1.7;
-  color: var(--muted);
-  max-width: 215px;
-}
-.map-intro button {
-  padding: 12px 0 0;
-  font-size: 12px;
-  color: var(--green);
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  width: 100%;
-}
-.map-intro button span {
-  font-size: 20px;
 }
 .map-legend {
   position: absolute;
@@ -622,7 +584,7 @@ input[type="checkbox"] {
   order: -1;
   font-size: 17px;
   font-weight: 400;
-  letter-spacing: -0.5px;
+  letter-spacing: 0;
   margin: 0;
 }
 .close {
@@ -638,8 +600,7 @@ input[type="checkbox"] {
 }
 .metrics small {
   font:
-    8px "Courier New",
-    monospace;
+    8px var(--font-mono);
   color: var(--muted);
   display: block;
   letter-spacing: 0.6px;
@@ -687,8 +648,7 @@ input[type="checkbox"] {
 }
 .playback > span {
   font:
-    9px "Courier New",
-    monospace;
+    9px var(--font-mono);
   color: var(--muted);
   min-width: 55px;
   text-align: right;
@@ -737,6 +697,15 @@ input[type="checkbox"] {
   font-size: 9px !important;
   max-width: 80%;
 }
+.map-host .maplibregl-ctrl-attrib,
+.map-host .maplibregl-ctrl-attrib-button,
+.map-host .maplibregl-ctrl-attrib::after {
+  background-color: transparent !important;
+  box-shadow: none !important;
+}
+.map-host:not([data-ready="true"]) .maplibregl-ctrl-attrib {
+  visibility: hidden;
+}
 .maplibregl-ctrl-bottom-right {
   max-width: 70%;
 }
@@ -767,7 +736,7 @@ input[type="checkbox"] {
 }
 .sources-modal h2 {
   font-size: 30px;
-  letter-spacing: -1px;
+  letter-spacing: 0;
   font-weight: 400;
   margin: 15px 0 25px;
 }
@@ -796,7 +765,6 @@ input[type="checkbox"] {
     top: 35px;
     left: 35px;
   }
-  .map-intro,
   .storm-detail {
     left: 35px;
     bottom: 65px;
@@ -817,10 +785,10 @@ input[type="checkbox"] {
     gap: 20px;
   }
   .layers {
-    top: 150px;
+    top: 26px;
   }
   .satellite-control {
-    top: 290px;
+    top: 160px;
     width: 220px;
   }
   .storm-detail {
@@ -954,27 +922,44 @@ input[type="checkbox"] {
     max-height: 750px;
   }
   .map-heading {
-    left: 15px;
-    top: 15px;
-    padding: 12px 15px;
+    display: block;
+    top: 0;
+    left: 0;
+    right: 0;
+    max-width: none;
+    padding: 6px 12px;
+    background: #fff;
+    border: 0;
+    border-bottom: 1px solid #d8ded6;
+    border-radius: 0;
+    box-shadow: none;
   }
   .map-heading h2 {
-    font-size: 21px;
+    font-size: 15px;
+    line-height: 1.2;
+    letter-spacing: 0;
+    margin: 2px 0 0;
   }
   .map-heading .eyebrow {
     font-size: 8px;
+    line-height: 1.2;
+    letter-spacing: 1px;
   }
   .map-heading p {
-    font-size: 9px;
+    display: none;
   }
   .layers {
-    right: 15px;
-    top: 122px;
-    min-width: 142px;
-    padding: 12px;
+    right: 10px;
+    top: 66px;
+    min-width: 130px;
+    padding: 8px;
   }
   .layers > label {
-    font-size: 10px;
+    font-size: 9px;
+    gap: 6px;
+  }
+  .layers > label + label {
+    margin-top: 8px;
   }
   .layers .opacity {
     display: none;
@@ -994,18 +979,6 @@ input[type="checkbox"] {
   }
   .satellite-control small {
     font-size: 8px;
-  }
-  .map-intro {
-    left: 15px;
-    bottom: 49px;
-    width: 260px;
-    padding: 20px;
-  }
-  .map-intro h3 {
-    font-size: 22px;
-  }
-  .map-intro p {
-    font-size: 11px;
   }
   .storm-detail {
     left: 12px;
@@ -1082,9 +1055,11 @@ input[type="checkbox"] {
     padding: 10px;
   }
   .image-status {
-    top: auto;
-    bottom: 360px;
-    max-width: calc(100% - 30px);
+    top: 244px;
+    bottom: auto;
+    left: auto;
+    right: 10px;
+    max-width: min(220px, calc(100% - 20px));
   }
   .modal-backdrop {
     padding: 15px;
@@ -1201,8 +1176,7 @@ input[type="checkbox"] {
   background: #f4f6f0f5;
   color: #286357;
   font:
-    600 10px/1.2 Arial,
-    sans-serif;
+    600 10px/1.2 var(--font-mono);
   letter-spacing: 0.6px;
   text-transform: uppercase;
   white-space: nowrap;
@@ -1254,12 +1228,12 @@ input[type="checkbox"] {
 }
 @media (max-width: 700px) {
   .satellite-control {
-    top: 122px;
-    left: 15px;
-    right: auto;
-    width: calc(100% - 190px);
-    min-width: 145px;
-    padding: 12px;
+    top: 126px;
+    left: auto;
+    right: 10px;
+    width: min(220px, calc(100% - 20px));
+    min-width: 0;
+    padding: 9px;
   }
   .satellite-control .eyebrow {
     font-size: 7px;
@@ -1267,18 +1241,330 @@ input[type="checkbox"] {
   }
   .satellite-control small {
     font-size: 7px;
-    line-height: 1.5;
+    line-height: 1.35;
   }
   .satellite-playback {
-    gap: 8px;
-    margin: 7px 0;
+    gap: 6px;
+    margin: 4px 0;
   }
   .satellite-control strong {
     font-size: 9px;
+    margin: 5px 0 7px;
   }
   .satellite-playback > button {
-    width: 23px;
-    height: 23px;
+    width: 21px;
+    height: 21px;
+  }
+}
+.map-controls {
+  position: absolute;
+  top: 26px;
+  right: 20px;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 10px;
+  width: min(260px, calc(100% - 40px));
+  pointer-events: none;
+}
+.map-controls > .layers,
+.map-controls .satellite-control {
+  position: static;
+  pointer-events: auto;
+}
+.map-controls .satellite-control {
+  width: 100%;
+}
+.satellite-dock {
+  display: contents;
+}
+.mobile-map-legend {
+  display: none;
+}
+.satellite-control .satellite-frame-status {
+  margin: 6px 0;
+  color: var(--muted);
+  font-size: 10px;
+}
+.satellite-control .satellite-frame-status:empty {
+  display: none;
+}
+@media (max-width: 1050px) {
+  .map-controls {
+    width: min(220px, calc(100% - 40px));
+  }
+}
+@media (min-width: 701px) {
+  .map-heading {
+    top: 12px;
+    left: 10px;
+    padding: 10px 12px;
+  }
+  .map-heading h2 {
+    font-size: 20px;
+    letter-spacing: 0;
+    margin: 4px 0;
+  }
+  .map-heading .eyebrow {
+    font-size: 8px;
+    letter-spacing: 1px;
+  }
+  .map-heading p {
+    font-size: 9px;
+  }
+  .map-controls {
+    display: contents;
+  }
+  .map-controls > .layers {
+    position: absolute;
+    top: 12px;
+    right: 10px;
+    min-width: 140px;
+    padding: 10px;
+  }
+  .layers > label + label {
+    margin-top: 10px;
+  }
+  .layers .opacity input {
+    width: 100%;
+    margin-top: 8px;
+  }
+  .storm-detail {
+    left: 10px;
+    width: min(380px, calc(100% - 20px));
+    padding: 12px 14px 10px;
+  }
+  .detail-top {
+    margin-bottom: 10px;
+  }
+  .metrics {
+    gap: 10px;
+  }
+  .map-legend {
+    left: 10px;
+    gap: 8px;
+  }
+  .satellite-dock {
+    display: block;
+    position: absolute;
+    left: auto;
+    right: 10px;
+    bottom: 28px;
+    width: min(320px, calc(100% - 20px));
+    z-index: 2;
+  }
+  .satellite-dock .satellite-control {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    align-items: center;
+    gap: 3px 8px;
+    padding: 6px 10px;
+    background: #15232af5;
+    border: 1px solid #435459;
+    border-radius: 8px;
+    box-shadow: 0 6px 24px #07101440;
+  }
+  .satellite-dock .satellite-control > .eyebrow {
+    font: 600 9px/14px var(--font-mono);
+    letter-spacing: 0.7px;
+    color: #dce8df;
+  }
+  .satellite-dock .satellite-control strong {
+    margin: 0;
+    text-align: right;
+    font-size: 10px;
+    font-variant-numeric: tabular-nums;
+  }
+  .satellite-dock .satellite-playback {
+    grid-column: 1 / -1;
+    margin: 0;
+    gap: 8px;
+  }
+  .satellite-dock .satellite-playback input {
+    height: 24px;
+    background: transparent;
+    touch-action: none;
+  }
+  .satellite-dock .satellite-playback > button:first-child {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    background: var(--green);
+    border: 0;
+    color: #15232a;
+  }
+  .satellite-dock .satellite-playback > .satellite-save {
+    height: 28px;
+    padding: 0 8px;
+    font-size: 10px;
+    border-radius: 5px;
+  }
+  .satellite-dock .satellite-control > small {
+    display: none;
+  }
+  .satellite-dock .satellite-control > p {
+    grid-column: 1 / -1;
+    margin: 0;
+    font-size: 10px;
+  }
+  .satellite-dock .satellite-control .satellite-frame-status {
+    display: block;
+    min-height: 12px;
+    line-height: 12px;
+  }
+  .map-panel[data-satellite="true"] > .map-legend {
+    bottom: 116px;
+  }
+  .map-panel[data-satellite="true"] .storm-detail {
+    bottom: 148px;
+  }
+}
+@media (max-width: 700px) {
+  .map-panel {
+    display: grid;
+    grid-template-rows: auto minmax(0, 1fr) auto;
+  }
+  .map-heading {
+    position: relative;
+    grid-row: 1;
+  }
+  .map-controls {
+    display: contents;
+  }
+  .map-controls > .layers {
+    position: absolute;
+    top: 66px;
+    right: 10px;
+  }
+  .satellite-dock {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    grid-row: 3;
+    justify-self: stretch;
+    width: 100%;
+    margin: 0;
+    z-index: 1;
+  }
+  .satellite-dock .satellite-control {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    align-items: center;
+    gap: 4px 10px;
+    padding: 7px 12px;
+    background: #15232a;
+    border-top: 1px solid #435459;
+    border-bottom: 0;
+    border-radius: 0;
+    border-left: 0;
+    border-right: 0;
+  }
+  .satellite-dock .satellite-control strong {
+    margin: 0;
+    text-align: right;
+    font-size: 10px;
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+  }
+  .satellite-dock .satellite-control > .eyebrow {
+    font: 600 9px/14px var(--font-mono);
+    letter-spacing: 0.7px;
+    color: #dce8df;
+  }
+  .satellite-dock .satellite-playback {
+    grid-column: 1 / -1;
+    margin: 0;
+    gap: 10px;
+  }
+  .satellite-dock .satellite-playback > button:first-child {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: var(--green);
+    border: 0;
+    color: #15232a;
+    font-size: 13px;
+  }
+  .satellite-dock .satellite-playback > .satellite-save {
+    height: 32px;
+    padding: 0 10px;
+    font-size: 10px;
+    border-radius: 5px;
+    background: transparent;
+  }
+  .satellite-dock .satellite-playback input {
+    appearance: none;
+    -webkit-appearance: none;
+    height: 28px;
+    background: transparent;
+    cursor: pointer;
+    touch-action: none;
+  }
+  .satellite-dock .satellite-playback input::-webkit-slider-runnable-track {
+    height: 4px;
+    border-radius: 2px;
+    background: #61776c;
+  }
+  .satellite-dock .satellite-playback input::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 14px;
+    height: 14px;
+    margin-top: -5px;
+    border-radius: 50%;
+    background: var(--green);
+    border: 2px solid #15232a;
+  }
+  .satellite-dock .satellite-playback input::-moz-range-track {
+    height: 4px;
+    border-radius: 2px;
+    background: #61776c;
+  }
+  .satellite-dock .satellite-playback input::-moz-range-thumb {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: var(--green);
+    border: 2px solid #15232a;
+  }
+  .satellite-dock .satellite-control > small {
+    display: none;
+  }
+  .satellite-dock .satellite-control > p {
+    grid-column: 1 / -1;
+    margin: 0;
+    font-size: 9px;
+  }
+  .satellite-dock .satellite-control .satellite-frame-status {
+    display: block;
+    min-height: 12px;
+    line-height: 12px;
+  }
+  .map-panel[data-satellite="true"] .maplibregl-ctrl-bottom-right {
+    bottom: 82px;
+  }
+  .satellite-dock .mobile-map-legend {
+    display: flex;
+    position: static;
+    pointer-events: none;
+    justify-content: flex-start;
+    padding: 0 48px 0 12px;
+  }
+  .map-panel[data-satellite="true"] > .map-legend {
+    display: none;
+  }
+  .storm-detail {
+    position: relative;
+    grid-row: 2;
+    align-self: end;
+    left: auto;
+    bottom: auto;
+    width: calc(100% - 24px);
+    max-height: 100%;
+    overflow: auto;
+    margin: 0 12px 36px;
+  }
+  .map-panel[data-satellite="true"] .storm-detail {
+    margin-bottom: 10px;
   }
 }
 @media (prefers-reduced-motion: reduce) {

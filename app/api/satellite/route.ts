@@ -25,7 +25,7 @@ export async function GET(request: Request) {
       return NextResponse.json(
         { frames: frames.map(String) },
         {
-          headers: { "Cache-Control": "public, max-age=0, s-maxage=30" },
+          headers: { "Cache-Control": "public, max-age=15, s-maxage=30" },
         },
       );
     } catch {
@@ -60,7 +60,10 @@ export async function GET(request: Request) {
         "Content-Type": "image/png",
         "Content-Length": String(frame.png.byteLength),
         "Last-Modified": frame.lastModified,
-        "Server-Timing": `frame;dur=${Math.round(performance.now() - started)}`,
+        "Server-Timing": [
+          `frame;dur=${Math.round(performance.now() - started)}`,
+          ...Object.entries(frame.timings).map(([stage, ms]) => `${stage};dur=${ms}`),
+        ].join(", "),
         "Cache-Control":
           time.length === 14
             ? "public, max-age=86400, s-maxage=86400, immutable"
