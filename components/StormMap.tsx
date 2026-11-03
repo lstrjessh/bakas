@@ -5,6 +5,8 @@ import type { FeatureCollection } from "geojson";
 import { PAR, SATELLITE_BOUNDS, type Storm } from "@/lib/types";
 import { timeLabel, unwrapTrack } from "@/lib/tracks";
 import { loadSatelliteFrame } from "@/lib/satellite-frames";
+import { ESRI_IMAGERY_SOURCE, type Basemap } from "@/lib/basemaps";
+import { trackPointStyle } from "@/lib/track-style";
 import {
   exportSatelliteVideo,
   type VideoExportRequest,
@@ -14,6 +16,7 @@ import "maplibre-gl/dist/maplibre-gl.css";
 
 const empty: FeatureCollection = { type: "FeatureCollection", features: [] };
 type Props = {
+  basemap: Basemap;
   storm: Storm | null;
   position: number;
   onPosition: (value: number) => void;
@@ -22,13 +25,14 @@ type Props = {
   opacity: number;
   par: boolean;
   onFrameReady: (frame: string) => void;
-  onImageStatus?: (message: string) => void;
+  onImageStatus?: (message: string, loading: boolean) => void;
   videoRequest: VideoExportRequest | null;
   onVideoProgress: (message: string) => void;
   onVideoComplete: (result: VideoExportResult | null, error?: string) => void;
 };
 
 export default function StormMap({
+  basemap,
   storm,
   position,
   onPosition,
@@ -44,12 +48,13 @@ export default function StormMap({
 }: Props) {
   const host = useRef<HTMLDivElement>(null),
     map = useRef<maplibregl.Map | null>(null);
+  const baseLayers = useRef<{ id: string; visibility: "visible" | "none" }[]>([]);
   const [ready, setReady] = useState(false),
     [error, setError] = useState("");
   const [imageLoading, setImageLoading] = useState(false),
     [imageError, setImageError] = useState("");
   useEffect(() => {
-    onImageStatus?.(satellite ? imageError || (imageLoading ? "Loading satellite frame…" : "") : "");
+    onImageStatus?.(satellite ? imageError : "", satellite && imageLoading);
   }, [satellite, imageLoading, imageError, onImageStatus]);
   const click = useRef(onPosition);
   useEffect(() => {
@@ -88,6 +93,10 @@ export default function StormMap({
       "bottom-right",
     );
     instance.on("load", () => {
+      baseLayers.current = instance.getStyle().layers.map((layer) => ({
+        id: layer.id,
+        visibility: layer.layout?.visibility === "none" ? "none" : "visible",
+      }));
       instance.addSource("par", {
         type: "geojson",
         data: {
@@ -112,8 +121,15 @@ export default function StormMap({
         id: "track-shadow",
         type: "line",
         source: "track",
-        filter: ["==", ["geometry-type"], "LineString"],
-        paint: { "line-color": "#fff", "line-width": 5, "line-opacity": 0.8 },
+        filter: ["all", ["==", ["geometry-type"], "LineString"], ["==", ["get", "classified"], true]],
+        layout: { "line-cap": "round", "line-join": "round" },
+        paint: { "line-color": "#fff", "line-width": 4.5, "line-opacity": 0.55 },
+      });
+      instance.addLayer({
+        id: "track-glow", type: "line", source: "track",
+        filter: ["all", ["==", ["geometry-type"], "LineString"], ["==", ["get", "classified"], true]],
+        layout: { "line-cap": "round", "line-join": "round" },
+        paint: { "line-color": ["get", "color"], "line-width": 6, "line-blur": 1.5, "line-opacity": 0.35 },
       });
       instance.addLayer({
         id: "observed",
@@ -124,7 +140,10 @@ export default function StormMap({
           ["==", ["geometry-type"], "LineString"],
           ["==", ["get", "forecast"], false],
         ],
-        paint: { "line-color": "#286357", "line-width": 2.5 },
+        layout: { "line-cap": "round", "line-join": "round" },
+        paint: { "line-color": ["get", "color"],
+          "line-width": ["case", ["get", "classified"], 2.2, 1],
+          "line-opacity": ["case", ["get", "classified"], 0.95, 0.6] },
       });
       instance.addLayer({
         id: "forecast",
@@ -135,39 +154,58 @@ export default function StormMap({
           ["==", ["geometry-type"], "LineString"],
           ["==", ["get", "forecast"], true],
         ],
+        layout: { "line-cap": "round", "line-join": "round" },
         paint: {
-          "line-color": "#b66f42",
-          "line-width": 2.5,
-          "line-dasharray": [3, 2],
+          "line-color": ["get", "color"],
+          "line-width": ["case", ["get", "classified"], 2.2, 1],
+          "line-dasharray": [4, 2],
+          "line-opacity": 0.85,
         },
       });
       instance.addLayer({
         id: "positions",
         type: "circle",
         source: "track",
-        filter: ["==", ["geometry-type"], "Point"],
+        filter: ["all", ["==", ["geometry-type"], "Point"],
+          ["any", ["==", ["get", "classified"], true], ["==", ["get", "selected"], true]]],
         paint: {
-          "circle-radius": ["case", ["get", "selected"], 8, 3.5],
-          "circle-color": [
-            "case",
-            ["get", "selected"],
-            "#e9ad69",
-            ["get", "forecast"],
-            "#b66f42",
-            "#286357",
-          ],
+          "circle-radius": ["case", ["get", "selected"], 6, 3.5],
+          "circle-color": ["get", "color"],
           "circle-stroke-width": 1.5,
           "circle-stroke-color": "#fff",
         },
       });
-      instance.on("click", "positions", (e) => {
+      instance.addLayer({
+        id: "selected-position", type: "circle", source: "track",
+        filter: ["all", ["==", ["geometry-type"], "Point"], ["==", ["get", "selected"], true]],
+        paint: { "circle-radius": 12, "circle-color": ["get", "color"], "circle-opacity": 0.15,
+          "circle-stroke-color": "#fff", "circle-stroke-width": 2 },
+      });
+      instance.addLayer({
+        id: "category-icons", type: "symbol", source: "track",
+        filter: ["all", ["==", ["geometry-type"], "Point"], ["!=", ["get", "category"], ""]],
+        layout: {
+          "icon-image": ["concat", "pagasa-", ["get", "category"]],
+          "icon-size": ["interpolate", ["linear"], ["zoom"], 3, 0.6, 6, 0.8, 9, 1],
+          "icon-allow-overlap": true, "icon-ignore-placement": true,
+          "icon-pitch-alignment": "viewport", "icon-rotation-alignment": "viewport",
+        },
+      });
+      instance.addLayer({
+        id: "category-labels", type: "symbol", source: "track",
+        filter: ["all", ["==", ["geometry-type"], "Point"], ["!=", ["get", "category"], ""]],
+        layout: { "text-field": ["get", "categoryLabel"], "text-size": 10,
+          "text-font": ["Noto Sans Regular"], "text-offset": [0, 1.6], "text-anchor": "top" },
+        paint: { "text-color": "#1e293b", "text-halo-color": "#fffffff2", "text-halo-width": 1.5 },
+      });
+      instance.on("click", ["positions", "category-icons"], (e) => {
         const i = e.features?.[0]?.properties?.index;
         if (typeof i === "number") click.current(i);
       });
-      instance.on("mouseenter", "positions", () => {
+      instance.on("mouseenter", ["positions", "category-icons"], () => {
         instance.getCanvas().style.cursor = "pointer";
       });
-      instance.on("mouseleave", "positions", () => {
+      instance.on("mouseleave", ["positions", "category-icons"], () => {
         instance.getCanvas().style.cursor = "";
       });
       setReady(true);
@@ -186,46 +224,68 @@ export default function StormMap({
   useEffect(() => {
     const instance = map.current;
     if (!ready || !instance) return;
+    const imagery = basemap === "esri";
+    if (imagery && !instance.getSource("esri-basemap")) {
+      instance.addSource("esri-basemap", ESRI_IMAGERY_SOURCE);
+      instance.addLayer({ id: "esri-basemap", type: "raster", source: "esri-basemap" },
+        instance.getLayer("satellite") ? "satellite" : "par");
+    }
+    if (instance.getLayer("esri-basemap"))
+      instance.setLayoutProperty("esri-basemap", "visibility", imagery ? "visible" : "none");
+    for (const layer of baseLayers.current)
+      instance.setLayoutProperty(layer.id, "visibility", imagery ? "none" : layer.visibility);
+  }, [ready, basemap]);
+  useEffect(() => {
+    const instance = map.current;
+    if (!ready || !instance) return;
     const coordinates = unwrapTrack(storm?.track || []);
     const features: FeatureCollection["features"] = [];
     if (storm) {
-      const observed = storm.track.flatMap((p, i) =>
-        !p.forecast ? [coordinates[i]] : [],
-      );
-      const forecast = storm.track.flatMap((p, i) =>
-        p.forecast ? [coordinates[i]] : [],
-      );
-      if (observed.length > 1)
-        features.push({
+      storm.track.forEach((p, i) => {
+        const style = trackPointStyle(p);
+        if (i > 0) features.push({
           type: "Feature",
-          properties: { forecast: false },
-          geometry: { type: "LineString", coordinates: observed },
+          properties: { forecast: !!p.forecast, color: style.color, classified: style.classified },
+          geometry: { type: "LineString", coordinates: [coordinates[i - 1], coordinates[i]] },
         });
-      if (forecast.length && observed.length)
-        forecast.unshift(observed.at(-1)!);
-      if (forecast.length > 1)
-        features.push({
-          type: "Feature",
-          properties: { forecast: true },
-          geometry: { type: "LineString", coordinates: forecast },
-        });
-      storm.track.forEach((p, i) =>
         features.push({
           type: "Feature",
           properties: {
             index: i,
             selected: i === position,
             forecast: !!p.forecast,
+            ...style,
           },
           geometry: { type: "Point", coordinates: coordinates[i] },
-        }),
-      );
+        });
+      });
     }
     (instance.getSource("track") as maplibregl.GeoJSONSource).setData({
       type: "FeatureCollection",
       features,
     });
   }, [storm, position, ready]);
+  useEffect(() => {
+    const instance = map.current;
+    if (!ready || !instance || !storm) return;
+    let cancelled = false;
+    const categories = new Set(storm.track.map((p) => trackPointStyle(p).category));
+    for (const category of categories) {
+      if (!category || instance.hasImage(`pagasa-${category}`)) continue;
+      void instance.loadImage(`/icons/pagasa/${category}.png`).then(async ({ data }) => {
+        const pixels = typeof createImageBitmap === "function"
+          ? await createImageBitmap(data, { resizeWidth: 96, resizeHeight: 96, resizeQuality: "high" })
+          : data;
+        try {
+          if (!cancelled && !instance.hasImage(`pagasa-${category}`))
+            instance.addImage(`pagasa-${category}`, pixels, { pixelRatio: pixels.width / 30 });
+        } finally {
+          if (pixels instanceof ImageBitmap) pixels.close();
+        }
+      }).catch(() => { /* The category-coloured circle remains as a fallback. */ });
+    }
+    return () => { cancelled = true; };
+  }, [ready, storm]);
   useEffect(() => {
     const instance = map.current;
     if (!ready || !instance || !storm?.track.length) return;
@@ -268,7 +328,7 @@ export default function StormMap({
       (b, c) => b.extend(c),
       new maplibregl.LngLatBounds(coords[0], coords[0]),
     );
-    map.current.fitBounds(bounds, { padding: 70, maxZoom: 6, duration: 700 });
+    map.current.fitBounds(bounds, { padding: 70, maxZoom: 4.5, duration: 700 });
   }, [storm, ready]);
   useEffect(() => {
     if (ready)
@@ -355,7 +415,10 @@ export default function StormMap({
       )}
       {!onImageStatus && satellite && (imageLoading || imageError) && (
         <div className="image-status" role="status">
-          {imageError || "Loading satellite frame…"}
+          {imageError || <>
+            <span className="loading-spinner" aria-hidden="true" />
+            <span className="sr-only">Loading satellite frame</span>
+          </>}
         </div>
       )}
     </div>

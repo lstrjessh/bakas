@@ -142,6 +142,13 @@ export async function exportSatelliteVideo(
       pixelRatio: Math.min(1, 1920 / width, 1080 / height),
       canvasContextAttributes: { preserveDrawingBuffer: true },
     });
+    const exportMap = map;
+    // Runtime icons are not included in getStyle(); preserve them in recordings.
+    exportMap.on("styleimagemissing", ({ id }) => {
+      if (!id.startsWith("pagasa-") || exportMap.hasImage(id)) return;
+      const icon = original.getImage(id);
+      if (icon) exportMap.addImage(id, icon.data, { pixelRatio: icon.pixelRatio, sdf: icon.sdf });
+    });
     await mapReady(map, signal);
     const canvas = document.createElement("canvas");
     canvas.width = Math.floor(map.getCanvas().width / 2) * 2;

@@ -10,6 +10,9 @@ import {
 } from "@/lib/types";
 import { timeLabel, windLabel } from "@/lib/tracks";
 import { loadSatelliteFrame, preloadSatelliteFrames } from "@/lib/satellite-frames";
+import MapSettings from "./MapSettings";
+import type { Basemap } from "@/lib/basemaps";
+import { trackPointStyle } from "@/lib/track-style";
 import { downloadBlob, downloadTrack } from "@/lib/downloads";
 import type {
   VideoExportRequest,
@@ -46,7 +49,13 @@ function CycloneIcon() {
 }
 
 export default function Tracker() {
+  const [basemap, setBasemap] = useState<Basemap>("map");
   const [satelliteStatus, setSatelliteStatus] = useState("");
+  const [satelliteLoading, setSatelliteLoading] = useState(false);
+  const handleSatelliteStatus = useCallback((message: string, loading: boolean) => {
+    setSatelliteStatus(message);
+    setSatelliteLoading(loading);
+  }, []);
   const [mode, setMode] = useState<"live" | "archive">("live"),
     [archive, setArchive] = useState<ArchiveIndex | null>(null),
     [archiveError, setArchiveError] = useState("");
@@ -175,6 +184,7 @@ export default function Tracker() {
     const value = Number(params.get("step"));
     if (Number.isInteger(value) && value >= 0) setPosition(value);
     const satelliteEnabled = params.get("satellite") !== "0";
+    setBasemap(params.get("basemap") === "esri" ? "esri" : "map");
     setSatellite(satelliteEnabled);
     setSatPlaying(satelliteEnabled);
     setLoadedUrl(true);
@@ -268,8 +278,10 @@ export default function Tracker() {
       if (position) url.searchParams.set("step", String(position));
     }
     url.searchParams.set("satellite", satellite ? "1" : "0");
+    if (basemap === "esri") url.searchParams.set("basemap", "esri");
+    else url.searchParams.delete("basemap");
     history.replaceState(null, "", url);
-  }, [selection, position, satellite, loadedUrl]);
+  }, [selection, position, satellite, basemap, loadedUrl]);
   useEffect(() => {
     if (!playing || !storm) return;
     const timer = setInterval(
@@ -321,6 +333,7 @@ export default function Tracker() {
     [storm],
   );
   const maximumWind = Math.max(...windSamples.map((p) => p.wind || 0), 1);
+  const windDerivedCategories = useMemo(() => storm?.track.some((p) => trackPointStyle(p).derived) ?? false, [storm]);
   const displayed =
     mode === "live" ? live?.storms || [] : filtered.slice(0, 100);
   return (
@@ -333,9 +346,7 @@ export default function Tracker() {
           </span>
         </a>
         <span className="header-caption">Typhoon tracks, past and present</span>
-        <button className="sources-button" onClick={() => setSources(true)}>
-          Data & sources <span>↗</span>
-        </button>
+        <MapSettings basemap={basemap} onBasemapChange={setBasemap} onSources={() => setSources(true)} />
       </header>
       <div className="workspace" inert={!!videoRequest}>
         <aside className="sidebar" aria-label="Storm browser">
@@ -493,6 +504,7 @@ export default function Tracker() {
         </aside>
         <section className="map-panel" data-satellite={satellite} aria-label="Storm explorer">
           <StormMap
+            basemap={basemap}
             storm={storm}
             position={position}
             onPosition={move}
@@ -501,7 +513,7 @@ export default function Tracker() {
             opacity={opacity}
             par={par}
             onFrameReady={setFrameReady}
-            onImageStatus={setSatelliteStatus}
+            onImageStatus={handleSatelliteStatus}
             videoRequest={videoRequest}
             onVideoProgress={setVideoProgress}
             onVideoComplete={finishVideo}
@@ -560,6 +572,7 @@ export default function Tracker() {
               <div className="map-legend mobile-map-legend">
                 <span><i />Observed</span>
                 <span><i className="forecast-key" />Forecast</span>
+                {windDerivedCategories && <span className="wind-category-note" title="Derived using today's PAGASA wind bands and recorded 10-minute winds; not a historical agency classification.">* Current scale</span>}
               </div>
             <div className="satellite-control">
               <span className="eyebrow">HIMAWARI · INFRARED</span>
@@ -643,7 +656,12 @@ export default function Tracker() {
                       Save ↓
                     </button>
                   </div>
-                  <p className="satellite-frame-status" role="status">{satelliteStatus}</p>
+                  <p className="satellite-frame-status" role="status">
+                    {satelliteStatus || (satelliteLoading ? <>
+                      <span className="loading-spinner" aria-hidden="true" />
+                      <span className="sr-only">Loading satellite frame</span>
+                    </> : null)}
+                  </p>
                   <small>
                     Near-real-time · {frames.length} recent frames. Independent
                     of storm replay.
@@ -824,6 +842,7 @@ export default function Tracker() {
               Forecast
             </span>
             {satellite && <span>Imagery: JMA / RAMMB / CIRA</span>}
+            {windDerivedCategories && <span className="wind-category-note" title="Derived using today's PAGASA wind bands and recorded 10-minute winds; not a historical agency classification.">* Derived · current scale</span>}
           </div>
         </section>
       </div>
@@ -903,7 +922,11 @@ export default function Tracker() {
               , Western Pacific storms from 1951 onward. We retain WMO reporting
               agencies, missing values, and wind averaging periods. Wind values
               are converted from knots to km/h for display; measurements from
-              different agencies are not interchangeable.
+              different agencies are not interchangeable. Category symbols marked
+              * apply today's PAGASA wind bands to recorded 10-minute winds. They
+              are derived display categories, not historical PAGASA classifications.
+              Points without a reported category or compatible wind data remain
+              on the route without a category icon.
             </p>
             <p>
               Satellite imagery is Himawari infrared, distributed through{" "}

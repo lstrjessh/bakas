@@ -127,6 +127,81 @@ input[type="checkbox"] {
 .sources-button span {
   color: var(--green);
 }
+.header-settings {
+  position: relative;
+  margin-left: auto;
+  flex-shrink: 0;
+}
+.settings-trigger {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 10px;
+  border: 1px solid var(--line);
+  border-radius: 5px;
+  color: #b1beb9;
+  font-size: 11px;
+}
+.settings-trigger:hover,
+.settings-trigger[aria-expanded="true"] {
+  background: var(--panel);
+  color: var(--ink);
+}
+.settings-dropdown {
+  position: absolute;
+  top: calc(100% + 10px);
+  right: 0;
+  width: min(280px, calc(100vw - 36px));
+  padding: 12px;
+  border: 1px solid #3b4f50;
+  border-radius: 8px;
+  background: var(--panel);
+  box-shadow: 0 8px 28px #07101455;
+}
+.settings-dropdown > p {
+  margin: 0 0 10px;
+}
+.basemap-choices {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+.basemap-choice {
+  min-width: 0;
+  padding: 0;
+  overflow: hidden;
+  border: 1px solid #3b4f50;
+  border-radius: 5px;
+  color: var(--muted);
+}
+.basemap-choice[aria-pressed="true"] {
+  border-color: var(--green);
+  color: var(--green);
+  box-shadow: 0 0 0 1px var(--green);
+}
+.basemap-choice img {
+  display: block;
+  width: 100%;
+  height: auto;
+  aspect-ratio: 8 / 5;
+  object-fit: cover;
+}
+.basemap-choice span {
+  display: block;
+  padding: 7px 4px;
+  font-size: 10px;
+}
+.settings-sources {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  margin-top: 12px;
+  padding: 10px 0 0;
+  border-top: 1px solid var(--line);
+  color: #b1beb9;
+  font-size: 11px;
+}
 .eyebrow {
   font:
     9px/1.5 var(--font-mono);
@@ -515,12 +590,15 @@ input[type="checkbox"] {
   display: block;
   width: 13px;
   height: 2px;
-  background: #286357;
+  background: #64748b;
 }
 .map-legend .forecast-key {
   height: 0;
   background: none;
-  border-top: 2px dashed #b66f42;
+  border-top: 2px dashed #64748b;
+}
+.map-panel[data-satellite] .map-legend > span.wind-category-note {
+  display: flex;
 }
 .map-message {
   position: absolute;
@@ -630,7 +708,8 @@ input[type="checkbox"] {
   gap: 12px;
   padding: 6px 0 10px;
 }
-.playback button {
+.playback button,
+.satellite-playback > button {
   display: grid;
   place-items: center;
   background: #bbdfb41a;
@@ -641,6 +720,7 @@ input[type="checkbox"] {
   border-radius: 3px;
   font-size: 12px;
   flex-shrink: 0;
+  text-decoration: none;
 }
 .playback input {
   flex: 1;
@@ -984,10 +1064,25 @@ input[type="checkbox"] {
     left: 12px;
     bottom: 46px;
     width: calc(100% - 24px);
-    padding: 14px 15px 10px;
+    padding: 8px 10px;
+  }
+  .storm-detail .detail-top {
+    gap: 8px;
+    margin-bottom: 6px;
+  }
+  .detail-top > div {
+    gap: 2px 8px;
+  }
+  .detail-top .eyebrow {
+    font-size: 7px;
+    letter-spacing: 0.4px;
+  }
+  .storm-detail .close {
+    font-size: 22px;
+    padding-bottom: 0;
   }
   .detail-top h3 {
-    font-size: 16px;
+    font-size: 13px;
     margin: 0;
   }
   .metrics {
@@ -998,22 +1093,29 @@ input[type="checkbox"] {
     font-size: 7px;
   }
   .metrics strong {
-    font-size: 14px;
+    font-size: 12px;
+    margin-top: 2px;
   }
   .metrics > div:last-child strong {
     font-size: 10px;
+    padding-top: 0;
   }
   .intensity-chart {
-    height: 30px;
-    margin-top: 8px;
+    height: 22px;
+    margin-top: 4px;
   }
   .playback {
-    padding: 5px 0 10px;
-    gap: 12px;
+    padding: 3px 0 5px;
+    gap: 8px;
+  }
+  .storm-detail .playback button {
+    width: 28px;
+    height: 28px;
   }
   .detail-source {
     font-size: 8px;
-    padding-top: 10px;
+    padding-top: 5px;
+    gap: 8px;
   }
   .map-legend {
     left: 12px;
@@ -1206,18 +1308,6 @@ input[type="checkbox"] {
   align-items: center;
   margin: 10px 0;
 }
-.satellite-playback > button {
-  display: grid;
-  place-items: center;
-  width: 27px;
-  height: 27px;
-  border: 1px solid #71987e55;
-  border-radius: 3px;
-  text-decoration: none !important;
-  background: #bbdfb41a;
-  font-size: 10px;
-  flex-shrink: 0;
-}
 .satellite-playback label {
   flex: 1;
   min-width: 0;
@@ -1281,6 +1371,20 @@ input[type="checkbox"] {
 .mobile-map-legend {
   display: none;
 }
+.loading-spinner {
+  display: inline-block;
+  width: 12px;
+  height: 12px;
+  box-sizing: border-box;
+  border: 2px solid #bbdfb433;
+  border-top-color: var(--green);
+  border-radius: 50%;
+  vertical-align: top;
+  animation: loading-spin 0.7s linear infinite;
+}
+@keyframes loading-spin {
+  to { transform: rotate(360deg); }
+}
 .satellite-control .satellite-frame-status {
   margin: 6px 0;
   color: var(--muted);
@@ -1331,6 +1435,7 @@ input[type="checkbox"] {
   }
   .storm-detail {
     left: 10px;
+    bottom: 36px;
     width: min(380px, calc(100% - 20px));
     padding: 12px 14px 10px;
   }
@@ -1359,15 +1464,15 @@ input[type="checkbox"] {
     align-items: center;
     gap: 3px 8px;
     padding: 6px 10px;
-    background: #15232af5;
-    border: 1px solid #435459;
-    border-radius: 8px;
-    box-shadow: 0 6px 24px #07101440;
+    background: #15232af8;
+    border: 1px solid #3b4f50;
+    border-radius: 5px;
+    box-shadow: 0 8px 35px #101b2133;
   }
   .satellite-dock .satellite-control > .eyebrow {
-    font: 600 9px/14px var(--font-mono);
+    font: 400 9px/14px var(--font-mono);
     letter-spacing: 0.7px;
-    color: #dce8df;
+    color: var(--green);
   }
   .satellite-dock .satellite-control strong {
     margin: 0;
@@ -1388,16 +1493,12 @@ input[type="checkbox"] {
   .satellite-dock .satellite-playback > button:first-child {
     width: 28px;
     height: 28px;
-    border-radius: 50%;
-    background: var(--green);
-    border: 0;
-    color: #15232a;
   }
   .satellite-dock .satellite-playback > .satellite-save {
     height: 28px;
     padding: 0 8px;
     font-size: 10px;
-    border-radius: 5px;
+    border-radius: 3px;
   }
   .satellite-dock .satellite-control > small {
     display: none;
@@ -1413,10 +1514,15 @@ input[type="checkbox"] {
     line-height: 12px;
   }
   .map-panel[data-satellite="true"] > .map-legend {
-    bottom: 116px;
+    bottom: 8px;
   }
   .map-panel[data-satellite="true"] .storm-detail {
-    bottom: 148px;
+    bottom: 36px;
+  }
+}
+@media (min-width: 701px) and (max-width: 1010px) {
+  .map-panel[data-satellite="true"] .storm-detail {
+    bottom: 120px;
   }
 }
 @media (max-width: 700px) {
@@ -1439,7 +1545,7 @@ input[type="checkbox"] {
   .satellite-dock {
     display: flex;
     flex-direction: column;
-    gap: 6px;
+    gap: 2px;
     grid-row: 3;
     justify-self: stretch;
     width: 100%;
@@ -1452,8 +1558,8 @@ input[type="checkbox"] {
     align-items: center;
     gap: 4px 10px;
     padding: 7px 12px;
-    background: #15232a;
-    border-top: 1px solid #435459;
+    background: #15232af8;
+    border-top: 1px solid #3b4f50;
     border-bottom: 0;
     border-radius: 0;
     border-left: 0;
@@ -1467,9 +1573,9 @@ input[type="checkbox"] {
     white-space: nowrap;
   }
   .satellite-dock .satellite-control > .eyebrow {
-    font: 600 9px/14px var(--font-mono);
+    font: 400 9px/14px var(--font-mono);
     letter-spacing: 0.7px;
-    color: #dce8df;
+    color: var(--green);
   }
   .satellite-dock .satellite-playback {
     grid-column: 1 / -1;
@@ -1479,52 +1585,19 @@ input[type="checkbox"] {
   .satellite-dock .satellite-playback > button:first-child {
     width: 32px;
     height: 32px;
-    border-radius: 50%;
-    background: var(--green);
-    border: 0;
-    color: #15232a;
-    font-size: 13px;
+    font-size: 12px;
   }
   .satellite-dock .satellite-playback > .satellite-save {
     height: 32px;
     padding: 0 10px;
     font-size: 10px;
-    border-radius: 5px;
-    background: transparent;
+    border-radius: 3px;
   }
   .satellite-dock .satellite-playback input {
-    appearance: none;
-    -webkit-appearance: none;
     height: 28px;
     background: transparent;
     cursor: pointer;
     touch-action: none;
-  }
-  .satellite-dock .satellite-playback input::-webkit-slider-runnable-track {
-    height: 4px;
-    border-radius: 2px;
-    background: #61776c;
-  }
-  .satellite-dock .satellite-playback input::-webkit-slider-thumb {
-    -webkit-appearance: none;
-    width: 14px;
-    height: 14px;
-    margin-top: -5px;
-    border-radius: 50%;
-    background: var(--green);
-    border: 2px solid #15232a;
-  }
-  .satellite-dock .satellite-playback input::-moz-range-track {
-    height: 4px;
-    border-radius: 2px;
-    background: #61776c;
-  }
-  .satellite-dock .satellite-playback input::-moz-range-thumb {
-    width: 10px;
-    height: 10px;
-    border-radius: 50%;
-    background: var(--green);
-    border: 2px solid #15232a;
   }
   .satellite-dock .satellite-control > small {
     display: none;
@@ -1561,10 +1634,10 @@ input[type="checkbox"] {
     width: calc(100% - 24px);
     max-height: 100%;
     overflow: auto;
-    margin: 0 12px 36px;
+    margin: 0 12px 24px;
   }
   .map-panel[data-satellite="true"] .storm-detail {
-    margin-bottom: 10px;
+    margin-bottom: 2px;
   }
 }
 @media (prefers-reduced-motion: reduce) {
